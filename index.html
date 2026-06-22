@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>梅花易数</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0a06;
+    color: #e8d5a3;
+    font-family: 'Georgia', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2.2rem;
+    color: #c9a84c;
+    letter-spacing: 8px;
+    margin: 30px 0 6px;
+  }
+  .subtitle {
+    font-size: 0.85rem;
+    color: #7a6a4a;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+  }
+
+  /* === TOGGLE: ก่อน/หลังกำเนิด === */
+  .bagua-mode-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .toggle-wrap {
+    display: flex;
+    background: #1a1408;
+    border: 1px solid #3a2e1a;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .toggle-wrap button {
+    padding: 8px 18px;
+    background: transparent;
+    border: none;
+    color: #7a6a4a;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .toggle-wrap button.active {
+    background: #c9a84c;
+    color: #0d0a06;
+    font-weight: bold;
+  }
+  .info-btn {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 1px solid #c9a84c;
+    background: transparent;
+    color: #c9a84c;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* === MODAL === */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: #1a1408;
+    border: 1px solid #c9a84c;
+    border-radius: 12px;
+    padding: 28px;
+    max-width: 340px;
+    width: 90%;
+  }
+  .modal-box h3 { color: #c9a84c; margin-bottom: 16px; font-size: 1rem; }
+  .modal-section { margin-bottom: 16px; }
+  .modal-section h4 { color: #e8d5a3; font-size: 0.9rem; margin-bottom: 6px; }
+  .modal-section ul { padding-left: 16px; }
+  .modal-section li { font-size: 0.82rem; color: #a09070; line-height: 1.7; }
+  .modal-close {
+    width: 100%; padding: 8px;
+    background: #c9a84c; color: #0d0a06;
+    border: none; border-radius: 6px;
+    cursor: pointer; font-weight: bold;
+    margin-top: 8px;
+  }
+
+  /* === CARD === */
+  .card {
+    background: #120f07;
+    border: 1px solid #2a2010;
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%; max-width: 480px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    color: #5a4a2a;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  /* === TIME MODE === */
+  .time-mode-row {
+    display: flex; gap: 10px; margin-bottom: 16px;
+  }
+  .time-btn {
+    flex: 1; padding: 10px;
+    background: #1a1408;
+    border: 1px solid #2a2010;
+    border-radius: 8px;
+    color: #7a6a4a;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .time-btn.active {
+    border-color: #c9a84c;
+    color: #c9a84c;
+  }
+  .datetime-input {
+    width: 100%;
+    background: #1a1408;
+    border: 1px solid #2a2010;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #e8d5a3;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    display: none;
+  }
+  .datetime-input.show { display: block; }
+
+  /* === NUMBER INPUT === */
+  .input-row {
+    display: flex; gap: 10px; margin-bottom: 4px;
+  }
+  .input-group { flex: 1; }
+  .input-group label {
+    display: block;
+    font-size: 0.72rem;
+    color: #5a4a2a;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .input-group input {
+    width: 100%;
+    background: #1a1408;
+    border: 1px solid #2a2010;
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: #e8d5a3;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: #c9a84c;
+  }
+  .input-hint {
+    font-size: 0.72rem;
+    color: #4a3a1a;
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .calc-btn {
+    width: 100%; padding: 14px;
+    background: #c9a84c;
+    border: none; border-radius: 8px;
+    color: #0d0a06;
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: opacity 0.2s;
+  }
+  .calc-btn:hover { opacity: 0.85; }
+
+  /* === RESULT === */
+  #result { display: none; }
+  .hexagram-display {
+    display: flex; gap: 20px; align-items: center;
+    margin-bottom: 20px;
+  }
+  .hex-lines { display: flex; flex-direction: column; gap: 5px; }
+  .hex-line {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .line-seg {
+    height: 5px; border-radius: 2px;
+    background: #c9a84c;
+  }
+  .line-seg.yang { width: 48px; }
+  .line-seg.yin-l { width: 20px; }
+  .line-seg.yin-r { width: 20px; }
+  .line-num {
+    font-size: 0.65rem; color: #5a4a2a;
+    width: 14px; text-align: right;
+  }
+  .line-changing { position: relative; }
+  .line-changing .line-seg { background: #e05a2a; }
+  .change-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #e05a2a;
+    margin-left: 4px;
+  }
+  .hex-info h2 {
+    font-size: 2rem; color: #c9a84c;
+    letter-spacing: 4px;
+  }
+  .hex-info .hex-sub {
+    font-size: 0.8rem; color: #7a6a4a;
+    margin-top: 4px;
+  }
+  .trigram-row {
+    display: flex; gap: 10px; margin-bottom: 16px;
+  }
+  .trigram-card {
+    flex: 1;
+    background: #1a1408;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    border-left: 3px solid;
+  }
+  .trigram-card .t-label {
+    font-size: 0.65rem; color: #5a4a2a;
+    letter-spacing: 2px; margin-bottom: 4px;
+  }
+  .trigram-card .t-name { font-size: 1.4rem; }
+  .trigram-card .t-element {
+    font-size: 0.72rem; color: #7a6a4a;
+    margin-top: 2px;
+  }
+  .changing-line-badge {
+    background: #2a1508;
+    border: 1px solid #e05a2a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: #e05a2a;
+    margin-bottom: 16px;
+  }
+  .meaning-box {
+    background: #1a1408;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: #a09070;
+    margin-bottom: 8px;
+  }
+  .meaning-box h4 {
+    color: #c9a84c;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+  }
+  .yam-display {
+    font-size: 0.78rem;
+    color: #5a4a2a;
+    text-align: center;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>梅花易数</h1>
+<p class="subtitle">พลัมบลอสซัม นิวเมอโรโลยี</p>
+
+<!-- BAGUA MODE TOGGLE -->
+<div class="bagua-mode-row">
+  <div class="toggle-wrap">
+    <button id="btn-xiantian" class="active" onclick="setMode('xiantian')">先天八卦</button>
+    <button id="btn-houtian" onclick="setMode('houtian')">後天八卦</button>
+  </div>
+  <button class="info-btn" onclick="showModal()">?</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <h3>เลือกแบบไหนดี?</h3>
+    <div class="modal-section">
+      <h4>先天八卦 ก่อนกำเนิด</h4>
+      <ul>
+        <li>ถามเรื่องโชคชะตา ดวงชีวิต</li>
+        <li>เรื่องสุขภาพ ร่างกาย</li>
+        <li>สิ่งที่อยู่นอกเหนือการควบคุม</li>
+        <li>ธรรมชาติ ฤดูกาล จักรวาล</li>
+      </ul>
+    </div>
+    <div class="modal-section">
+      <h4>後天八卦 หลังกำเนิด</h4>
+      <ul>
+        <li>การงาน ธุรกิจ การเงิน</li>
+        <li>ความสัมพันธ์ ครอบครัว</li>
+        <li>การตัดสินใจในชีวิตประจำวัน</li>
+        <li>เรื่องที่มนุษย์เปลี่ยนแปลงได้</li>
+      </ul>
+    </div>
+    <button class="modal-close" onclick="hideModal()">เข้าใจแล้ว</button>
+  </div>
+</div>
+
+<!-- INPUT CARD -->
+<div class="card">
+  <div class="card-title">⏱ เวลาที่ถาม</div>
+  <div class="time-mode-row">
+    <button class="time-btn active" id="btn-now" onclick="setTimeMode('now')">⚡ ตอนนี้เลย</button>
+    <button class="time-btn" id="btn-manual" onclick="setTimeMode('manual')">🕐 ระบุเวลาเอง</button>
+  </div>
+  <input type="datetime-local" id="datetime-input" class="datetime-input">
+  <div id="yam-display" class="yam-display"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">👁 จำนวนสิ่งของที่มองเห็น</div>
+  <div class="input-row">
+    <div class="input-group">
+      <label>จำนวนสิ่งของ</label>
+      <input type="number" id="obj-num" placeholder="7" min="1">
+    </div>
+  </div>
+  <div class="input-hint">
+    มองรอบตัวแล้วนับสิ่งของที่เห็น เช่น นก 7 ตัว, ต้นไม้ 3 ต้น, คน 5 คน
+  </div>
+  <button class="calc-btn" onclick="calculate()">起卦 — ทำนาย</button>
+</div>
+
+<!-- RESULT CARD -->
+<div class="card" id="result">
+  <div class="card-title">卦象 — ผลการทำนาย</div>
+  <div class="hexagram-display">
+    <div class="hex-lines" id="hex-lines"></div>
+    <div class="hex-info">
+      <h2 id="hex-name">—</h2>
+      <div class="hex-sub" id="hex-sub">—</div>
+    </div>
+  </div>
+  <div class="trigram-row">
+    <div class="trigram-card" id="upper-card">
+      <div class="t-label">上卦 กว้าบน</div>
+      <div class="t-name" id="upper-name">—</div>
+      <div class="t-element" id="upper-el">—</div>
+    </div>
+    <div class="trigram-card" id="lower-card">
+      <div class="t-label">下卦 กว้าล่าง</div>
+      <div class="t-name" id="lower-name">—</div>
+      <div class="t-element" id="lower-el">—</div>
+    </div>
+  </div>
+  <div class="changing-line-badge" id="change-badge">動爻 เส้นเปลี่ยน: —</div>
+  <div class="meaning-box">
+    <h4>卦辭 ความหมายกว้าตั้งต้น</h4>
+    <div id="hex-meaning">—</div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+
+const TRIGRAMS_XIANTIAN = {
+  1:'乾', 2:'兑', 3:'離', 4:'震', 5:'巽', 6:'坎', 7:'艮', 0:'坤'
+}
+const TRIGRAMS_HOUTIAN = {
+  1:'坎', 2:'坤', 3:'震', 4:'巽', 5:'坤', 6:'乾', 7:'兑', 0:'離', 8:'艮'
+}
+
+const TRIGRAM_INFO = {
+  '乾': { thai:'ฟ้า', element:'ทอง', color:'#FFD700', lines:[1,1,1] },
+  '兑': { thai:'ทะเลสาบ', element:'ทอง', color:'#C0C0C0', lines:[0,1,1] },
+  '離': { thai:'ไฟ', element:'ไฟ', color:'#FF6B35', lines:[1,0,1] },
+  '震': { thai:'ฟ้าร้อง', element:'ไม้', color:'#4CAF50', lines:[0,0,1] },
+  '巽': { thai:'ลม', element:'ไม้', color:'#81C784', lines:[1,1,0] },
+  '坎': { thai:'น้ำ', element:'น้ำ', color:'#42A5F5', lines:[0,1,0] },
+  '艮': { thai:'ภูเขา', element:'ดิน', color:'#8D6E63', lines:[1,0,0] },
+  '坤': { thai:'ดิน', element:'ดิน', color:'#A1887F', lines:[0,0,0] },
+}
+
+const HEXAGRAM_NAMES = {
+  '乾乾':'乾 — ฟ้า', '坤坤':'坤 — ดิน', '坎離':'既濟 — สำเร็จแล้ว',
+  '離坎':'未濟 — ยังไม่สำเร็จ', '乾坎':'需 — รอคอย',
+  '坎乾':'訟 — ข้อพิพาท', '乾坤':'泰 — สันติ', '坤乾':'否 — ปิดกั้น',
+  '震乾':'大壯 — แข็งแกร่ง', '乾震':'无妄 — ไม่ประมาท',
+  '坎坤':'師 — กองทัพ', '坤坎':'比 — ใกล้ชิด',
+  '乾兑':'履 — ระมัดระวัง', '兑乾':'小畜 — สะสมเล็กน้อย',
+  '艮坤':'謙 — ถ่อมตน', '坤震':'復 — กลับคืน',
+  '震坎':'屯 — เริ่มต้นยาก', '坎震':'解 — คลี่คลาย',
+  '艮離':'旅 — เดินทาง', '離艮':'賁 — ตกแต่ง',
+  '兑離':'革 — เปลี่ยนแปลง', '離兑':'鼎 — หม้อต้ม',
+  '巽乾':'姤 — พบกัน', '乾巽':'大過 — เกินพอดี',
+  '兑坤':'萃 — รวมตัว', '坤巽':'升 — ก้าวขึ้น',
+  '坎兑':'困 — ติดขัด', '兑坎':'井 — บ่อน้ำ',
+  '離巽':'鼎 — หม้อต้ม', '巽離':'家人 — ครอบครัว',
+  '震兑':'歸妹 — แต่งงาน', '兑震':'隨 — ติดตาม',
+  '艮兑':'損 — ลดลง', '兑艮':'咸 — ความรู้สึก',
+  '乾艮':'遁 — ถอยหลัง', '艮乾':'大畜 — สะสมใหญ่',
+  '坎艮':'蒙 — อ่อนด้อย', '艮坎':'蹇 — อุปสรรค',
+  '離坤':'晉 — ก้าวหน้า', '坤離':'明夷 — แสงมืด',
+  '震坤':'豫 — ยินดี', '坤兑':'臨 — ใกล้เข้ามา',
+  '巽震':'益 — เพิ่มพูน', '震巽':'恆 — ยั่งยืน',
+  '艮震':'小過 — เกินเล็กน้อย', '震艮':'頤 — เลี้ยงดู',
+  '離乾':'同人 — สามัคคี', '乾離':'大有 — มีมาก',
+  '坎巽':'渙 — กระจาย', '巽坎':'中孚 — ความจริงใจ',
+  '兑巽':'中孚 — ความจริงใจ', '巽兑':'小過 — เกินเล็กน้อย',
+  '艮巽':'蠱 — ปัญหา', '巽艮':'漸 — ค่อยเป็นค่อยไป',
+  '離震':'噬嗑 — กัดทะลุ', '震離':'豐 — รุ่งเรือง',
+  '坤艮':'剝 — กระเทาะออก', '艮艮':'艮 — หยุดนิ่ง',
+  '兑兑':'兑 — ยินดี', '巽巽':'巽 — ยอมอ่อน',
+  '坎坎':'坎 — อันตราย', '震震':'震 — ตื่นตระหนก',
+  '離離':'離 — เกาะติด',
+}
+
+const HEXAGRAM_MEANINGS = {
+  '乾乾':'มังกรบินขึ้นสูง ฤดูกาลแห่งความยิ่งใหญ่ ทำการใดก็สำเร็จ',
+  '坤坤':'แผ่นดินรองรับทุกสิ่ง ยอมรับ อ่อนน้อม จะได้รับการสนับสนุน',
+  'default':'กว้านี้กำลังอยู่ระหว่างการตีความ — ใช้ความรู้สึกภายในเป็นแนวทาง',
+}
+
+const SHICHEN = [
+  { name:'子', thai:'ชื่อ', num:1, range:'23:00–01:00' },
+  { name:'丑', thai:'ฉ่าว', num:2, range:'01:00–03:00' },
+  { name:'寅', thai:'อิ๋น', num:3, range:'03:00–05:00' },
+  { name:'卯', thai:'เม่า', num:4, range:'05:00–07:00' },
+  { name:'辰', thai:'เฉิน', num:5, range:'07:00–09:00' },
+  { name:'巳', thai:'ซื่อ', num:6, range:'09:00–11:00' },
+  { name:'午', thai:'อู่', num:7, range:'11:00–13:00' },
+  { name:'未', thai:'เว่ย', num:8, range:'13:00–15:00' },
+  { name:'申', thai:'เฉิน', num:9, range:'15:00–17:00' },
+  { name:'酉', thai:'โย่ว', num:10, range:'17:00–19:00' },
+  { name:'戌', thai:'ซู', num:11, range:'19:00–21:00' },
+  { name:'亥', thai:'ไห่', num:12, range:'21:00–23:00' },
+]
+
+// ==================== STATE ====================
+let baguaMode = 'xiantian'
+let timeMode = 'now'
+
+// ==================== FUNCTIONS ====================
+
+function setMode(mode) {
+  baguaMode = mode
+  document.getElementById('btn-xiantian').classList.toggle('active', mode==='xiantian')
+  document.getElementById('btn-houtian').classList.toggle('active', mode==='houtian')
+  if (document.getElementById('result').style.display !== 'none') calculate()
+}
+
+function setTimeMode(mode) {
+  timeMode = mode
+  document.getElementById('btn-now').classList.toggle('active', mode==='now')
+  document.getElementById('btn-manual').classList.toggle('active', mode==='manual')
+  const inp = document.getElementById('datetime-input')
+  inp.classList.toggle('show', mode==='manual')
+  updateYamDisplay()
+}
+
+function showModal() { document.getElementById('modal').classList.add('show') }
+function hideModal() { document.getElementById('modal').classList.remove('show') }
+
+function getShichen(date) {
+  const h = date.getHours(), m = date.getMinutes()
+  const totalMin = h * 60 + m
+  if (totalMin >= 1380 || totalMin < 60) return SHICHEN[0]   // 子 23-01
+  if (totalMin < 180) return SHICHEN[1]   // 丑
+  if (totalMin < 300) return SHICHEN[2]   // 寅
+  if (totalMin < 420) return SHICHEN[3]   // 卯
+  if (totalMin < 540) return SHICHEN[4]   // 辰
+  if (totalMin < 660) return SHICHEN[5]   // 巳
+  if (totalMin < 780) return SHICHEN[6]   // 午
+  if (totalMin < 900) return SHICHEN[7]   // 未
+  if (totalMin < 1020) return SHICHEN[8]  // 申
+  if (totalMin < 1140) return SHICHEN[9]  // 酉
+  if (totalMin < 1260) return SHICHEN[10] // 戌
+  return SHICHEN[11] // 亥
+}
+
+function updateYamDisplay() {
+  let date = timeMode === 'now' ? new Date()
+    : new Date(document.getElementById('datetime-input').value)
+  if (isNaN(date)) return
+  const yam = getShichen(date)
+  document.getElementById('yam-display').textContent =
+    `ยาม ${yam.name} (${yam.thai}) ${yam.range} = เลข ${yam.num}`
+}
+
+function getTrigram(remainder) {
+  const map = baguaMode === 'xiantian' ? TRIGRAMS_XIANTIAN : TRIGRAMS_HOUTIAN
+  const r = remainder % 8
+  return map[r] || map[0]
+}
+
+function renderLines(upperLines, lowerLines, changeLine) {
+  const allLines = [...lowerLines, ...upperLines] // line 1=bottom
+  const container = document.getElementById('hex-lines')
+  container.innerHTML = ''
+  for (let i = 5; i >= 0; i--) {
+    const lineNum = i + 1
+    const isYang = allLines[i] === 1
+    const isChanging = lineNum === changeLine
+    const div = document.createElement('div')
+    div.className = 'hex-line' + (isChanging ? ' line-changing' : '')
+    const numSpan = document.createElement('span')
+    numSpan.className = 'line-num'
+    numSpan.textContent = lineNum
+    div.appendChild(numSpan)
+    if (isYang) {
+      const seg = document.createElement('div')
+      seg.className = 'line-seg yang'
+      div.appendChild(seg)
+    } else {
+      const l = document.createElement('div'); l.className = 'line-seg yin-l'; div.appendChild(l)
+      const r = document.createElement('div'); r.className = 'line-seg yin-r'; div.appendChild(r)
+    }
+    if (isChanging) {
+      const dot = document.createElement('div'); dot.className = 'change-dot'; div.appendChild(dot)
+    }
+    container.appendChild(div)
+  }
+}
+
+function calculate() {
+  const objNum = parseInt(document.getElementById('obj-num').value)
+  if (!objNum || objNum < 1) { alert('กรุณาใส่จำนวนสิ่งของ'); return }
+
+  let date = timeMode === 'now' ? new Date()
+    : new Date(document.getElementById('datetime-input').value)
+  if (isNaN(date)) { alert('กรุณาเลือกวันเวลา'); return }
+
+  const yam = getShichen(date)
+  const yamNum = yam.num
+
+  // คำนวณ
+  const upperRem = objNum % 8
+  const lowerRem = (objNum + yamNum) % 8
+  const changeRem = (objNum + yamNum) % 6
+  const changeLine = changeRem === 0 ? 6 : changeRem
+
+  const upperChar = getTrigram(upperRem)
+  const lowerChar = getTrigram(lowerRem)
+  const upperInfo = TRIGRAM_INFO[upperChar]
+  const lowerInfo = TRIGRAM_INFO[lowerChar]
+
+  const hexKey = upperChar + lowerChar
+  const hexName = HEXAGRAM_NAMES[hexKey] || hexKey + ' — กว้าผสม'
+  const hexMeaning = HEXAGRAM_MEANINGS[hexKey] || HEXAGRAM_MEANINGS['default']
+
+  // แสดงผล
+  document.getElementById('hex-name').textContent = hexName.split('—')[0].trim()
+  document.getElementById('hex-sub').textContent = hexName.split('—')[1]?.trim() || ''
+  document.getElementById('upper-name').textContent = upperChar + ' ' + upperInfo.thai
+  document.getElementById('upper-el').textContent = '⬤ ' + upperInfo.element
+  document.getElementById('lower-name').textContent = lowerChar + ' ' + lowerInfo.thai
+  document.getElementById('lower-el').textContent = '⬤ ' + lowerInfo.element
+  document.getElementById('upper-card').style.borderColor = upperInfo.color
+  document.getElementById('lower-card').style.borderColor = lowerInfo.color
+  document.getElementById('upper-el').style.color = upperInfo.color
+  document.getElementById('lower-el').style.color = lowerInfo.color
+  document.getElementById('change-badge').textContent =
+    `動爻 เส้นเปลี่ยน: เส้นที่ ${changeLine} (จากล่างขึ้นบน)`
+  document.getElementById('hex-meaning').textContent = hexMeaning
+  document.getElementById('yam-display').textContent =
+    `ยาม ${yam.name} (${yam.thai}) ${yam.range} = เลข ${yamNum}`
+
+  renderLines(upperInfo.lines, lowerInfo.lines, changeLine)
+
+  const result = document.getElementById('result')
+  result.style.display = 'block'
+  result.scrollIntoView({ behavior: 'smooth' })
+}
+
+// อัปเดต yam ทุก 30 วินาที
+updateYamDisplay()
+setInterval(() => { if (timeMode === 'now') updateYamDisplay() }, 30000)
+document.getElementById('datetime-input').addEventListener('change', updateYamDisplay)
+</script>
+</body>
+  </html>
